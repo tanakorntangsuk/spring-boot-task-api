@@ -5,7 +5,7 @@ import com.todolist.todolist.models.Task;
 import com.todolist.todolist.models.User;
 import com.todolist.todolist.repository.TaskRepository;
 import com.todolist.todolist.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +14,16 @@ import java.util.Optional;
 
 @Service
 public class TaskService {
-    @Autowired
     private TaskRepository taskRepository;
-
-    @Autowired
     private UserRepository userRepository;
+
+    public TaskService(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
+    }
+
+    public TaskService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public List<Task> getAllTask(String usernameOrEmail){
         return taskRepository.findByOwner_UsernameOrOwner_Email(usernameOrEmail, usernameOrEmail);
@@ -27,7 +32,7 @@ public class TaskService {
     public List<Task> findTaskName(String name, String usernameOrEmail){
         return taskRepository.findByOwner_UsernameOrOwner_EmailAndNameContaining(usernameOrEmail, usernameOrEmail, name);
     }
-
+    @Transactional
     public TaskDto createTask(Task task, String usernameOrEmail) {
         User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -58,6 +63,7 @@ public class TaskService {
         return taskRepository.findByOwner_UsernameOrOwner_EmailAndCompletedFalse(usernameOrEmail, usernameOrEmail);
     }
 
+    @Transactional
     public Optional<Task> updateTask(Long id, Task task, String usernameOrEmail){
         Optional<Task> getTask = taskRepository.findById(id).filter(findTask ->
                 // ดึง Task ตาม ID ตรวจสอบว่าผู้ที่ส่งคำขอ (usernameOrEmail) เป็นเจ้าของ Task นี้หรือเปล่า
@@ -81,6 +87,7 @@ public class TaskService {
         return Optional.of(taskRepository.save(getTask.get()));
     }
 
+    @Transactional
     public boolean deleteTaskById(Long id,String usernameOrEmail ){
         Optional<Task> getTask = taskRepository.findById(id).filter(findTask ->
                 // ดึง Task ตาม ID ตรวจสอบว่าผู้ที่ส่งคำขอ (usernameOrEmail) เป็นเจ้าของ Task นี้หรือเปล่า
