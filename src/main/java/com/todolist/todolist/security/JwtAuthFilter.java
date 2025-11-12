@@ -9,13 +9,25 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter{
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    // พาธที่ไม่ต้องตรวจ JWT (Swagger/OpenAPI เท่านั้น)
+    private static final List<String> WHITELIST = List.of(
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    );
 
     public JwtAuthFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
